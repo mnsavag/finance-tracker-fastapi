@@ -7,9 +7,6 @@ from src.models.user import User
 from src.repository.repositoryBase  import IRepositoryBase
 
 from src.utils.time import get_data_by_time_zone, Data
-from src.utils.exceptions.common import NotFoundException
-from src.utils.exceptions.user import UserNotFoundException
-from src.utils.exceptions.month import MonthNotFoundException
 
 from src.repository.month import MonthRepository
 from src.repository.user import UserRepository
@@ -34,64 +31,35 @@ class MonthService:
         month.user_telegram_id = user.telegram_id
         await self.month_repo.create(dict(month))
 
-    async def set_limits_after_day(self, month: Month, begin_day: int, limit: float) -> dict:
-        month.days_statistics = copy.deepcopy(month.days_statistics)
-        for day in month.days_statistics:
-            if int(day) >= begin_day:
-                month.days_statistics[str(day)]["limit"] = limit
-                month.days_statistics[str(day)]["money_rest"] = limit - month.days_statistics[str(day)]["total_expenses"] - month.days_statistics[str(day)]["savings"]
+    async def set_limits_after_day(self, month: Month, begin_day: int, limit: float) -> Month:
+        await month.set_limits_after_day(begin_day, limit)
         return await self.month_repo.update(month)
     
     async def add_expense(self, month: Month, day: int, expense: IExpenseCreate) -> Month:
-        month.days_statistics = copy.deepcopy(month.days_statistics)
-
-        month.days_statistics[str(day)]["total_expenses"] += expense.cost
-        month.days_statistics[str(day)]["money_rest"] -= expense.cost
-
-        if expense.name not in month.days_statistics[str(day)]["expenses"]:
-            month.days_statistics[str(day)]["expenses"][expense.name] = 0
-
-        month.days_statistics[str(day)]["expenses"][expense.name] += expense.cost
-        month.total_expenses += expense.cost
+        await month.add_expense(day, expense)
         return await self.month_repo.update(month)
     
     async def delete_expense(self, month: Month, day: int, expense: IExpenseDelete) -> Month:
-        month.days_statistics = copy.deepcopy(month.days_statistics)
-        cost = month.days_statistics[str(day)]["expenses"][expense.name]
-
-        month.days_statistics[str(day)]["total_expenses"] -= cost
-        month.days_statistics[str(day)]["money_rest"] += cost
-        del month.days_statistics[str(day)]["expenses"][expense.name]
-        month.total_expenses -= cost
+        await month.delete_expense(day, expense)
         return await self.month_repo.update(month)
     
     async def transfer_to_savings(self, month: Month, day: int, amount: float) -> Month:
-        month.days_statistics = copy.deepcopy(month.days_statistics)
-        if month.days_statistics[str(day)]["money_rest"] >= amount:
-            month.days_statistics[str(day)]["money_rest"] -= amount
-
-            month.days_statistics[str(day)]["savings"] += amount
-            month.savings += amount
-        else:
+        try:
+            await month.transfer_to_savings(day, amount)
+        except Exception as e:
             raise HTTPException(
                 status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-                detail=f"The balance is less than the entered amount",
+                detail=str(e),
             )
         return await self.month_repo.update(month)
     
     async def transfer_from_savings(self, month: Month, day: int, amount: float) -> Month:
-        month.days_statistics = copy.deepcopy(month.days_statistics)
-        if month.savings >= amount:
-            month.savings -= amount
-            if month.days_statistics[str(day)]["savings"] >= amount:
-                month.days_statistics[str(day)]["savings"] -= amount
-            else:
-                month.days_statistics[str(day)]["savings"] = 0
-            month.days_statistics[str(day)]["money_rest"] += amount
-        else:
+        try:
+            await month.transfer_from_savings(day, amount)
+        except Exception as e:
             raise HTTPException(
                 status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-                detail=f"The savings is less than the entered amount",
+                detail=str(e),
             )
         return await self.month_repo.update(month)
 

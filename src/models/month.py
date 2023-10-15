@@ -3,9 +3,11 @@ from pydantic import validator
 from sqlalchemy import JSON, Column
 from sqlmodel import SQLModel, Field, Relationship
 import pytz
+import copy
 from datetime import datetime
 from calendar import monthrange
 from src.utils.time import get_data_by_time_zone, Data
+from src.schemas.days_schema import IExpenseCreate, IExpenseDelete
 import json
 
 if TYPE_CHECKING:
@@ -16,7 +18,7 @@ class IDayStats(SQLModel):
     limit: float
     money_rest: float
     total_expenses: float
-    savings: float
+    savings_taken: float
     expenses: dict
 
 
@@ -69,6 +71,57 @@ class Month(MonthBase, table=True):
         for day in range(1, days + 1):
             statistic[day] = dict(IDayStats(
                                         limit=0, money_rest=0, 
-                                        total_expenses=0, savings=0, expenses={}
+                                        total_expenses=0, savings_taken=0, 
+                                        expenses={}
                                     ))
         return statistic
+    
+    async def set_limits_after_day(self, begin_day: int, limit: float) -> None:
+       self.days_statistics = copy.deepcopy(self.days_statistics)
+       for day in self.days_statistics:
+            if int(day) >= begin_day:
+                self.days_statistics[str(day)]["limit"] = limit
+                self.days_statistics[str(day)]["money_rest"] = limit - self.days_statistics[str(day)]["total_expenses"]
+
+                self.savings += self.days_statistics[str(day)]["savings_taken"]
+                self.days_statistics[str(day)]["savings_taken"] = 0
+
+    async def add_expense(self, day: int, expense: IExpenseCreate) -> None:
+        self.days_statistics = copy.deepcopy(self.days_statistics)
+
+        self.days_statistics[str(day)]["total_expenses"] += expense.cost
+        self.days_statistics[str(day)]["money_rest"] -= expense.cost
+
+        if expense.name not in self.days_statistics[str(day)]["expenses"]:
+            self.days_statistics[str(day)]["expenses"][expense.name] = 0
+
+        self.days_statistics[str(day)]["expenses"][expense.name] += expense.cost
+        self.total_expenses += expense.cost
+
+    async def delete_expense(self, day: int, expense: IExpenseDelete) -> None:
+        self.days_statistics = copy.deepcopy(self.days_statistics)
+        cost = self.days_statistics[str(day)]["expenses"][expense.name]
+
+        self.days_statistics[str(day)]["total_expenses"] -= cost
+        self.days_statistics[str(day)]["money_rest"] += cost
+        del self.days_statistics[str(day)]["expenses"][expense.name]
+        self.total_expenses -= cost
+
+    async def transfer_to_savings(self, day: int, amount: float) -> None:
+        self.days_statistics = copy.deepcopy(self.days_statistics)
+        if self.days_statistics[str(day)]["money_rest"] >= amount:
+            self.days_statistics[str(day)]["money_rest"] -= amount
+            self.days_statistics[str(day)]["savings_taken"] -= amount
+            self.savings += amount
+        else:
+            raise Exception("The balance is less than the entered amount")
+
+    async def transfer_from_savings(self, day: int, amount: float) -> None:
+        self.days_statistics = copy.deepcopy(self.days_statistics)
+
+        if self.savings >= amount:
+            self.savings -= amount
+            self.days_statistics[str(day)]["savings_taken"] += amount
+            self.days_statistics[str(day)]["money_rest"] += amount
+        else:
+            raise Exception("The savings is less than the entered amount")
