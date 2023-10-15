@@ -3,10 +3,21 @@ from sqlmodel import SQLModel
 from src.models.month import MonthBase
 
 
-class IMonthReadByUser(SQLModel):
+class IDataMonthYear(SQLModel):
+    year: int
+    month: int
+
+class IData(SQLModel):
+    year: int
+    month: int
+    day: int
+
+
+class ISpecificMonth(IDataMonthYear):
     user_id: int
 
-class ITransferSavings(SQLModel):
+
+class ITransferSavings(IData):
     user_id: int
     amount: int
     

@@ -1,17 +1,26 @@
 from sqlmodel import SQLModel
 
 
-class ISetLimit(SQLModel):
+class IDataMonthYear(SQLModel):
+    year: int
+    month: int
+
+class IData(SQLModel):
+    year: int
+    month: int
+    day: int
+
+
+class ISetLimit(IData):
     user_id: int
-    time_zone: str
     limit: float
 
 
-class IExpenseCreate(SQLModel):
+class IExpenseCreate(IData):
     user_id: int
     name: str
     cost: int
 
-class IExpenseDelete(SQLModel):
+class IExpenseDelete(IData):
     user_id: int
     name: str
