@@ -5,7 +5,7 @@ from src.models.user import User
 from src.models.month import Month
 from src.repository.user import UserRepository
 from src.schemas.user_shema import IUserDataRead
-from src.utils.time import get_data_by_time_zone, Data
+from src.utils.time import get_date_by_time_zone, Date
 
 
 class UserService:

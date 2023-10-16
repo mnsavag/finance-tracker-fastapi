@@ -5,7 +5,7 @@ from src.models.month import MonthBase
 from src.models.month import Month
 
 from sqlalchemy.sql import select
-from src.utils.time import Data
+from src.utils.time import Date
 from typing import List
 from src.repository.repositoryBase import SQLAlchemyRepository
 import json

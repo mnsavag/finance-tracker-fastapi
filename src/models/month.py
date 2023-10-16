@@ -6,7 +6,8 @@ import pytz
 import copy
 from datetime import datetime
 from calendar import monthrange
-from src.utils.time import get_data_by_time_zone, Data
+from src.utils.time import get_date_by_time_zone
+from src.schemas.date_scheme import Date
 from src.schemas.days_schema import IExpenseCreate, IExpenseDelete
 import json
 
@@ -54,19 +55,19 @@ class Month(MonthBase, table=True):
 
     @classmethod
     async def get_init_month(cls, time_zone: str):
-        data: Data = await get_data_by_time_zone(time_zone)
-        statistic: dict = await Month.get_init_stats(data)
+        date: Date = await get_date_by_time_zone(time_zone)
+        statistic: dict = await Month.get_init_stats(date)
         return cls(
             time_zone=time_zone,
-            day=data.day, 
-            month=data.month, 
-            year=data.year, 
+            day=date.day, 
+            month=date.month, 
+            year=date.year, 
             days_statistics=statistic,
         )
 
     @classmethod
-    async def get_init_stats(cls, data: Data) -> dict:
-        days = monthrange(data.year, data.month)[1]
+    async def get_init_stats(cls, date: Date) -> dict:
+        days = monthrange(date.year, date.month)[1]
         statistic = {}
         for day in range(1, days + 1):
             statistic[day] = dict(IDayStats(

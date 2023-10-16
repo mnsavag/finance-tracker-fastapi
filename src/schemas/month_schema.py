@@ -1,31 +1,24 @@
 from typing import Dict
 from sqlmodel import SQLModel
 from src.models.month import MonthBase
+from src.schemas.date_scheme import DateFull, DateMonthYear
 
 
-class IDataMonthYear(SQLModel):
-    year: int
-    month: int
-
-class IData(SQLModel):
-    year: int
-    month: int
-    day: int
-
-
-class ISpecificMonth(IDataMonthYear):
+class ISpecificMonth(DateMonthYear):
     user_id: int
 
 
-class ITransferSavings(IData):
+class ITransferSavings(DateFull):
     user_id: int
     amount: int
-    
+
+
 class IDayStats(SQLModel):
     limit: float
     money_rest: float
     total_expenses: float
     expenses: dict
+
 
 class IMonthStatisticRead(MonthBase):
     days_statistics: Dict 

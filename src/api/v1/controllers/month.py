@@ -17,7 +17,8 @@ from src.utils.exceptions.user import UserNotFoundException
 from src.utils.exceptions.month import MonthNotFoundException
 from src.utils.exceptions.common import IdNotFoundException
 
-from src.utils.time import get_data_by_time_zone, Data
+from src.utils.time import get_date_by_time_zone
+from src.schemas.date_scheme import Date
 
 from src.schemas.days_schema import ISetLimit, IExpenseCreate, IExpenseDelete
 from src.schemas.month_schema import ISpecificMonth, ITransferSavings
@@ -50,7 +51,7 @@ async def get_month(
     month_service: MonthService = Depends(MonthService)
 ) -> Month:
     
-    month = await month_service.get_by_user_id_and_data(specificMonth.user_id, Data(year=specificMonth.year, month=specificMonth.month))
+    month = await month_service.get_by_user_id_and_date(specificMonth.user_id, Date(year=specificMonth.year, month=specificMonth.month))
     if not month:
         raise MonthNotFoundException(specificMonth.user_id)
     return month
@@ -62,8 +63,8 @@ async def set_limits(
     month_service: MonthService = Depends(MonthService)
 ) -> dict:
     
-    data: Data = Data(year=obj_in.year, month=obj_in.month, day=obj_in.day)
-    month = await month_service.get_by_user_id_and_data(obj_in.user_id, data)
+    date: Date = Date(year=obj_in.year, month=obj_in.month, day=obj_in.day)
+    month = await month_service.get_by_user_id_and_date(obj_in.user_id, date)
     if not month:
         raise MonthNotFoundException(obj_in.user_id)
     
@@ -77,7 +78,7 @@ async def add_expense(
     month_service: MonthService = Depends(MonthService)
 ) -> Month:
     
-    month = await month_service.get_by_user_id_and_data(obj_in.user_id, Data(year=obj_in.year, month=obj_in.month, day=obj_in.day))
+    month = await month_service.get_by_user_id_and_date(obj_in.user_id, Date(year=obj_in.year, month=obj_in.month, day=obj_in.day))
     if not month:
         raise MonthNotFoundException(obj_in.user_id)
     
@@ -91,7 +92,7 @@ async def delete_expense(
     month_service: MonthService = Depends(MonthService)
 ) -> Month:
     
-    month = await month_service.get_by_user_id_and_data(obj_in.user_id, Data(year=obj_in.year, month=obj_in.month, day=obj_in.day))
+    month = await month_service.get_by_user_id_and_date(obj_in.user_id, Date(year=obj_in.year, month=obj_in.month, day=obj_in.day))
     if not month:
         raise MonthNotFoundException(obj_in.user_id)
     
@@ -111,12 +112,13 @@ async def transer_to_savings(
     month_service: MonthService = Depends(MonthService)
 ) -> Month:
     
-    month = await month_service.get_by_user_id_and_data(obj_in.user_id, Data(year=obj_in.year, month=obj_in.month, day=obj_in.day))
+    month = await month_service.get_by_user_id_and_date(obj_in.user_id, Date(year=obj_in.year, month=obj_in.month, day=obj_in.day))
     if not month:
         raise MonthNotFoundException(obj_in.user_id)
     
     month = await month_service.transfer_to_savings(month, obj_in.day, obj_in.amount)
     return month
+
 
 @router.patch("/from-savings")
 async def transer_to_savings(
@@ -124,7 +126,7 @@ async def transer_to_savings(
     month_service: MonthService = Depends(MonthService)
 ) -> Month:
     
-    month = await month_service.get_by_user_id_and_data(obj_in.user_id, Data(year=obj_in.year, month=obj_in.month, day=obj_in.day))
+    month = await month_service.get_by_user_id_and_date(obj_in.user_id, Date(year=obj_in.year, month=obj_in.month, day=obj_in.day))
     if not month:
         raise MonthNotFoundException(obj_in.user_id)
     

@@ -6,7 +6,7 @@ from src.models.month import MonthBase, Month
 from src.models.user import User
 from src.repository.repositoryBase  import IRepositoryBase
 
-from src.utils.time import get_data_by_time_zone, Data
+from src.utils.time import get_date_by_time_zone, Date
 
 from src.repository.month import MonthRepository
 from src.repository.user import UserRepository
@@ -20,11 +20,11 @@ class MonthService:
     async def get_by_id(self, id) -> Month:
         return await self.month_repo.get(id)
     
-    async def get_by_user_id_and_data(self, user_id: int, data: Data) -> Month | None:
-        return await self.month_repo.get_month(user_id, data.month, data.year)
+    async def get_by_user_id_and_date(self, user_id: int, date: Date) -> Month | None:
+        return await self.month_repo.get_month(user_id, date.month, date.year)
     
-    async def get_current_month(self, user_id: int, data: Data):
-        return await self.month_repo.get_month(user_id, data.month, data.year)
+    async def get_current_month(self, user_id: int, date: Date):
+        return await self.month_repo.get_month(user_id, date.month, date.year)
         
     async def add_month_to_user(self, month: Month, user: User):
         await self.is_unique_month(month, user.telegram_id)

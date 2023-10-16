@@ -1,26 +1,16 @@
 from sqlmodel import SQLModel
+from src.schemas.date_scheme import DateFull, DateMonthYear
 
-
-class IDataMonthYear(SQLModel):
-    year: int
-    month: int
-
-class IData(SQLModel):
-    year: int
-    month: int
-    day: int
-
-
-class ISetLimit(IData):
+class ISetLimit(DateFull):
     user_id: int
     limit: float
 
 
-class IExpenseCreate(IData):
+class IExpenseCreate(DateFull):
     user_id: int
     name: str
     cost: int
 
-class IExpenseDelete(IData):
+class IExpenseDelete(DateFull):
     user_id: int
     name: str

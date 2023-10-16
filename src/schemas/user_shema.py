@@ -1,6 +1,6 @@
 from src.models.user import UserBase
 from sqlmodel import SQLModel
-from src.utils.time import Data, get_data_by_time_zone
+from src.utils.time import Date, get_date_by_time_zone
 
 
 class IUserCreate(UserBase):
