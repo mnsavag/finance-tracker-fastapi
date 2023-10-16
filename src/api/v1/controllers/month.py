@@ -7,10 +7,11 @@ from src.services.user import UserService
 
 from src.utils.exceptions.user import UserNotFoundException
 from src.utils.exceptions.month import MonthNotFoundException
+from src.utils.exceptions.common import IdNotFoundException
 
 from src.schemas.date_scheme import Date
 from src.schemas.days_schema import ISetLimit, IExpenseCreate, IExpenseDelete
-from src.schemas.month_schema import ISpecificMonth, ISpecificDate, ITransferSavings
+from src.schemas.month_schema import ISpecificMonth, ISpecificDate, ITransferSavings, IDaysLimitsUpdate
 from src.schemas.response_shema import create_response
 
 
@@ -57,6 +58,21 @@ async def set_limits(
         raise MonthNotFoundException(obj_in.user_id)
     
     daily_stats = await month_service.set_limits_after_day(month, obj_in.day, obj_in.limit)
+    return daily_stats
+
+
+@router.patch("/limit")
+async def set_limit(
+    obj_in: ISetLimit,
+    month_service: MonthService = Depends(MonthService)
+) -> dict:
+    
+    date: Date = Date(year=obj_in.year, month=obj_in.month, day=obj_in.day)
+    month = await month_service.get_by_user_id_and_date(obj_in.user_id, date)
+    if not month:
+        raise MonthNotFoundException(obj_in.user_id)
+    
+    daily_stats = await month_service.set_day_limit(month, obj_in.day, obj_in.limit)
     return daily_stats
 
 
@@ -148,3 +164,17 @@ async def rest_to_savings(
     
     month = await month_service.rest_in_a_day(month, obj_in.day)
     return month
+
+@router.patch("/{month_id}/limits/transfer")
+async def transfer_limits(
+    limits: IDaysLimitsUpdate,
+    month_id: int,
+    month_service: MonthService = Depends(MonthService)
+):
+    """Compares request and db limits and if there are no data integrity violations, then updates"""
+    month = await month_service.get_by_id(month_id)
+    if not month:
+        raise IdNotFoundException(Month, month_id)
+
+    await month_service.transfer_limits(month, limits.days)
+    return create_response(detail="limits updated")

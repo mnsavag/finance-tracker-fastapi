@@ -31,6 +31,10 @@ class MonthService:
         month.user_telegram_id = user.telegram_id
         await self.month_repo.create(dict(month))
 
+    async def set_day_limit(self, month: Month, day: int, limit: float) -> Month:
+        await month.set_day_limit(day, limit)
+        return await self.month_repo.update(month)
+    
     async def set_limits_after_day(self, month: Month, begin_day: int, limit: float) -> Month:
         await month.set_limits_after_day(begin_day, limit)
         return await self.month_repo.update(month)
@@ -70,6 +74,16 @@ class MonthService:
     async def rest_in_a_day(self, month: Month, until_day: int) -> Month:
         await month.rest_in_a_day(until_day)
         return await self.month_repo.update(month)
+
+    async def transfer_limits(self, month: Month, limits: dict[str, float]) -> None:
+        try:
+            await month.is_limits_consistent(limits)
+        except Exception as e:
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail=str(e),
+            )
+        await self.month_repo.update(month)
 
     async def is_unique_month(self, month_in: MonthBase, user_telegram_id: int) -> bool:
         months: List[Month] = await self.month_repo.get_months(user_telegram_id)

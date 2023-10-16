@@ -14,7 +14,7 @@ import json
 if TYPE_CHECKING:
     from .user import User
 
-
+    
 class IDayStats(SQLModel):
     limit: float
     money_rest: float
@@ -78,6 +78,15 @@ class Month(MonthBase, table=True):
                                     ))
         return statistic
     
+    async def set_day_limit(self, day: int, limit: float) -> None:
+        self.days_statistics = copy.deepcopy(self.days_statistics)
+
+        self.days_statistics[str(day)]["limit"] = limit
+        self.days_statistics[str(day)]["money_rest"] = limit - self.days_statistics[str(day)]["total_expenses"]
+        
+        self.savings += self.days_statistics[str(day)]["savings_taken"]
+        self.days_statistics[str(day)]["savings_taken"] = 0
+
     async def set_limits_after_day(self, begin_day: int, limit: float) -> None:
        self.days_statistics = copy.deepcopy(self.days_statistics)
        for day in self.days_statistics:
@@ -148,3 +157,18 @@ class Month(MonthBase, table=True):
             self.days_statistics[str(until_day)]["money_rest"] += self.days_statistics[str(day)]["money_rest"] 
             self.days_statistics[str(until_day)]["limit"] += self.days_statistics[str(day)]["money_rest"]
             self.days_statistics[str(day)]["money_rest"] = 0
+
+    async def is_limits_consistent(self, limits: dict[str, float]) -> dict:
+        self.days_statistics = copy.deepcopy(self.days_statistics)
+
+        old_sum_limit = sum([props["limit"] for day, props in self.days_statistics.items()])
+        new_sum_limit = sum(limits.values())
+        if old_sum_limit != new_sum_limit or len(self.days_statistics) != len(limits):
+            raise Exception("Limits is incorrect")
+        
+        for day in self.days_statistics:
+            old_limit = self.days_statistics[str(day)]["limit"]
+            self.days_statistics[str(day)]["money_rest"] += (limits[str(day)] - old_limit)
+            self.days_statistics[str(day)]["limit"] = limits[str(day)]
+    
+        return self.days_statistics

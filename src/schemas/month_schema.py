@@ -10,17 +10,17 @@ class ISpecificMonth(DateMonthYear):
 
 class ISpecificDate(DateFull):
     user_id: int
-    
+
 class ITransferSavings(DateFull):
     user_id: int
     amount: int
 
 
-class IDayStats(SQLModel):
-    limit: float
-    money_rest: float
-    total_expenses: float
-    expenses: dict
+#class IDayStats(SQLModel):
+#    limit: float
+#    money_rest: float
+#    total_expenses: float
+#    expenses: dict
 
 
 class IMonthStatisticRead(MonthBase):
@@ -28,3 +28,6 @@ class IMonthStatisticRead(MonthBase):
     total_expenses: float
     savings: float
     user_telegram_id: int
+
+class IDaysLimitsUpdate(SQLModel):
+    days: Dict[str, float]
