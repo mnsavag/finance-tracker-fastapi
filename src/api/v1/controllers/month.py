@@ -1,30 +1,18 @@
-from typing import Annotated, List
 from fastapi import APIRouter, Depends, status, HTTPException
 
 from src.models.month import MonthBase, Month
 
-from src.schemas.response_shema import create_response
-
-from src.repository.user import UserRepository
-from src.deps.services import get_user_service, get_month_service
 from src.services.month import MonthService
-
-from src.repository.user import UserRepository
-from src.models.user import User
 from src.services.user import UserService
 
 from src.utils.exceptions.user import UserNotFoundException
 from src.utils.exceptions.month import MonthNotFoundException
-from src.utils.exceptions.common import IdNotFoundException
 
-from src.utils.time import get_date_by_time_zone
 from src.schemas.date_scheme import Date
-
 from src.schemas.days_schema import ISetLimit, IExpenseCreate, IExpenseDelete
-from src.schemas.month_schema import ISpecificMonth, ITransferSavings
+from src.schemas.month_schema import ISpecificMonth, ISpecificDate, ITransferSavings
+from src.schemas.response_shema import create_response
 
-from src.deps.user import get_user
-from src.models.month import Month
 
 router = APIRouter()
 
@@ -106,7 +94,7 @@ async def delete_expense(
     return month
 
 
-@router.patch("/to-savings")
+@router.patch("/savings/transfer-to")
 async def transer_to_savings(
     obj_in: ITransferSavings,
     month_service: MonthService = Depends(MonthService)
@@ -120,8 +108,8 @@ async def transer_to_savings(
     return month
 
 
-@router.patch("/from-savings")
-async def transer_to_savings(
+@router.patch("/savings/transfer-from")
+async def transer_from_savings(
     obj_in: ITransferSavings,
     month_service: MonthService = Depends(MonthService)
 ) -> Month:
@@ -131,4 +119,32 @@ async def transer_to_savings(
         raise MonthNotFoundException(obj_in.user_id)
     
     month = await month_service.transfer_from_savings(month, obj_in.day, obj_in.amount)
+    return month
+
+
+@router.patch("/rest/send-to-savings")
+async def rest_to_savings(
+    obj_in: ISpecificDate,
+    month_service: MonthService = Depends(MonthService)
+) -> Month:
+    """Send all month's money rest before specified day to savings"""
+    month = await month_service.get_by_user_id_and_date(obj_in.user_id, Date(year=obj_in.year, month=obj_in.month, day=obj_in.day))
+    if not month:
+        raise MonthNotFoundException(obj_in.user_id)
+    
+    month = await month_service.rest_to_savings(month, obj_in.day)
+    return month
+
+
+@router.patch("/rest/send-in-a-day")
+async def rest_to_savings(
+    obj_in: ISpecificDate,
+    month_service: MonthService = Depends(MonthService)
+) -> Month:
+    """Send all month's money rest before specified day in a day"""
+    month = await month_service.get_by_user_id_and_date(obj_in.user_id, Date(year=obj_in.year, month=obj_in.month, day=obj_in.day))
+    if not month:
+        raise MonthNotFoundException(obj_in.user_id)
+    
+    month = await month_service.rest_in_a_day(month, obj_in.day)
     return month

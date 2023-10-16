@@ -8,6 +8,9 @@ class ISpecificMonth(DateMonthYear):
     user_id: int
 
 
+class ISpecificDate(DateFull):
+    user_id: int
+    
 class ITransferSavings(DateFull):
     user_id: int
     amount: int

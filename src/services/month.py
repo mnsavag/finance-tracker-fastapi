@@ -63,6 +63,14 @@ class MonthService:
             )
         return await self.month_repo.update(month)
 
+    async def rest_to_savings(self, month: Month, until_day: int) -> Month:
+        await month.rest_to_savings(until_day)
+        return await self.month_repo.update(month)
+    
+    async def rest_in_a_day(self, month: Month, until_day: int) -> Month:
+        await month.rest_in_a_day(until_day)
+        return await self.month_repo.update(month)
+
     async def is_unique_month(self, month_in: MonthBase, user_telegram_id: int) -> bool:
         months: List[Month] = await self.month_repo.get_months(user_telegram_id)
         for month in months:

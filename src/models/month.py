@@ -18,8 +18,9 @@ if TYPE_CHECKING:
 class IDayStats(SQLModel):
     limit: float
     money_rest: float
+    profit: float # balance at the end of the day
     total_expenses: float
-    savings_taken: float
+    savings_taken: float # > 0 => from month[savings] ||| < 0 => send to savings
     expenses: dict
 
 
@@ -71,7 +72,7 @@ class Month(MonthBase, table=True):
         statistic = {}
         for day in range(1, days + 1):
             statistic[day] = dict(IDayStats(
-                                        limit=0, money_rest=0, 
+                                        limit=0, money_rest=0, profit=0,
                                         total_expenses=0, savings_taken=0, 
                                         expenses={}
                                     ))
@@ -126,3 +127,24 @@ class Month(MonthBase, table=True):
             self.days_statistics[str(day)]["money_rest"] += amount
         else:
             raise Exception("The savings is less than the entered amount")
+
+    async def rest_to_savings(self, until_day: int) -> None:
+        self.days_statistics = copy.deepcopy(self.days_statistics)
+        for day in self.days_statistics:
+            if int(day) == until_day:
+                return
+            self.days_statistics[str(day)]["profit"] += self.days_statistics[str(day)]["money_rest"]
+
+            self.savings += self.days_statistics[str(day)]["money_rest"]
+            self.days_statistics[str(day)]["money_rest"] = 0
+
+    async def rest_in_a_day(self, until_day: int) -> None:
+        self.days_statistics = copy.deepcopy(self.days_statistics)
+        for day in self.days_statistics:
+            if int(day) == until_day:
+                return
+            self.days_statistics[str(day)]["profit"] += self.days_statistics[str(day)]["money_rest"]
+
+            self.days_statistics[str(until_day)]["money_rest"] += self.days_statistics[str(day)]["money_rest"] 
+            self.days_statistics[str(until_day)]["limit"] += self.days_statistics[str(day)]["money_rest"]
+            self.days_statistics[str(day)]["money_rest"] = 0
