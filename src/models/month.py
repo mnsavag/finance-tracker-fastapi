@@ -1,22 +1,20 @@
-from typing import Dict, Optional, TYPE_CHECKING
-from sqlalchemy import JSON, Column
-from sqlmodel import SQLModel, Field, Relationship
-from pydantic import validator
+from typing import TYPE_CHECKING
+from sqlalchemy import JSON, ForeignKey
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+from pydantic import BaseModel
 
-from src.utils.time import get_date_by_time_zone
-from src.schemas.date_scheme import Date
 from src.schemas.days_schema import IDayExpenseCreate, IDayExpenseDelete
+from src.models.base import Base
 
-import copy
-import pytz
 from calendar import monthrange
+import copy
 
 
 if TYPE_CHECKING:
     from .user import User
 
     
-class IDayStats(SQLModel):
+class IDayStats(BaseModel):
     limit: float
     money_rest: float
     profit: float # balance at the end of the day
@@ -25,51 +23,25 @@ class IDayStats(SQLModel):
     expenses: dict
 
 
-class MonthBase(SQLModel):
-    user_telegram_id: int
-    time_zone: str
-
-    @validator("time_zone")
-    def is_valid_time_zone(cls, time_zone):
-      valid_zones = pytz.all_timezones
-      if time_zone not in valid_zones:
-        raise ValueError(f'The time zone indicated is incorrect {time_zone}')
-      return time_zone
-
-
-class Month(MonthBase, table=True):
+class Month(Base):
     __tablename__ = "month"
 
-    id: Optional[int] = Field(default=None, primary_key=True)
-    day: int
-    month: int
-    year: int
+    id: Mapped[int] = mapped_column(default=None, primary_key=True)
+    user_telegram_id: Mapped[int]
+    month: Mapped[int]
+    year: Mapped[int]
 
-    days_statistics: Dict = Field(default={}, sa_column=Column(JSON)) 
-    total_expenses: float = Field(default=0)
-    savings: float = Field(default=0)
+    days_statistics: Mapped[dict] = mapped_column(JSON) 
+    total_expenses: Mapped[float] = mapped_column(default=0)
+    savings: Mapped[float] = mapped_column(default=0)
 
-    user_telegram_id: int = Field(foreign_key=('user.telegram_id'))
-    user: Optional["User"] = Relationship(back_populates="months")
+    user_telegram_id: Mapped[int] = mapped_column(ForeignKey('user.telegram_id'))
+    user: Mapped["User"] = relationship(back_populates="months")
     
-    class Config:
-        arbitrary_types_allowed = True
 
-    @classmethod
-    async def get_init_month(cls, time_zone: str):
-        date: Date = await get_date_by_time_zone(time_zone)
-        statistic: dict = await Month.get_init_stats(date)
-        return cls(
-            time_zone=time_zone,
-            day=date.day, 
-            month=date.month, 
-            year=date.year, 
-            days_statistics=statistic,
-        )
-
-    @classmethod
-    async def get_init_stats(cls, date: Date) -> dict:
-        days = monthrange(date.year, date.month)[1]
+    @staticmethod
+    async def get_init_stats(year: int, month: int) -> dict:
+        days = monthrange(year, month)[1]
         statistic = {}
         for day in range(1, days + 1):
             statistic[day] = dict(IDayStats(

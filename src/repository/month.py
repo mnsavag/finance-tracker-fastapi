@@ -1,15 +1,9 @@
-import copy
-from sqlalchemy import update
-from src.db.db import db
-from src.models.month import MonthBase
-from src.models.month import Month
-
-from sqlalchemy.sql import select
-from src.utils.time import Date
 from typing import List
+from sqlalchemy.sql import select
+
 from src.repository.repositoryBase import SQLAlchemyRepository
-import json
-from sqlalchemy.orm import attributes
+from src.models.month import Month
+from src.db.db import db
 
 
 class MonthRepository(SQLAlchemyRepository):

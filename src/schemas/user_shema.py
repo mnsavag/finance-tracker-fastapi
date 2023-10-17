@@ -1,18 +1,6 @@
-from src.models.user import UserBase
-from sqlmodel import SQLModel
-from src.utils.time import Date, get_date_by_time_zone
+from pydantic import BaseModel, EmailStr
 
-
-class IUserCreate(UserBase):
+class IUserCreate(BaseModel):
     telegram_id: int
     password: str | None
-
-
-class IUserRead(UserBase):
-    telegram_id: int
-
-class IUserDataRead(SQLModel):
-    day: int
-    month: int
-    year: int
-    time_zone: str
+    mail: EmailStr

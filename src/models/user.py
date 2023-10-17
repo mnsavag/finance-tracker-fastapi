@@ -1,26 +1,22 @@
 from typing import List, Optional, TYPE_CHECKING
+from sqlalchemy import DateTime
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from datetime import datetime
-from pydantic import EmailStr
-from sqlmodel import SQLModel, Field, Relationship
+from src.models.base import Base
 
 if TYPE_CHECKING:
     from .month import Month
     from .history import History
 
 
-class UserBase(SQLModel):
-    mail: Optional[EmailStr] = Field(
-        nullable=True, index=True, sa_column_kwargs={"unique": True}
-    )
-
-
-class User(UserBase, table=True):
+class User(Base):
     __tablename__ = "user"
 
-    telegram_id: Optional[int] = Field(default=None, primary_key=True)
-    password: str | None = Field(nullable=True, index=True)
-    created_at: datetime = Field(default_factory=datetime.utcnow)
+    telegram_id: Mapped[int] = mapped_column(default=None, primary_key=True)
+    password: Mapped[Optional[str]] = mapped_column(nullable=True, index=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    mail: Mapped[Optional[str]] = mapped_column(nullable=True, index=True, unique=True)
 
-    months: List["Month"] | None =  Relationship(back_populates="user")
-    stories: List["History"] | None = Relationship(back_populates="user")
+    months: Mapped[List["Month"]] =  relationship(back_populates="user")
+    stories: Mapped[List["History"]] = relationship(back_populates="user")

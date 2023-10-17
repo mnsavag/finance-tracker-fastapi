@@ -1,11 +1,8 @@
-from src.repository.repositoryBase  import IRepositoryBase
-from src.schemas.user_shema import IUserCreate
-from src.utils.exceptions.user import UserExistException
 from src.models.user import User
-from src.models.month import Month
+from src.schemas.user_shema import IUserCreate
 from src.repository.user import UserRepository
-from src.schemas.user_shema import IUserDataRead
-from src.utils.time import get_date_by_time_zone, Date
+from src.repository.repositoryBase  import IRepositoryBase
+from src.utils.exceptions.user import UserExistException
 
 
 class UserService:

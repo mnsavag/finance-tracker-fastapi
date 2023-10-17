@@ -1,10 +1,8 @@
 from sqlalchemy.ext.asyncio import create_async_engine
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import sessionmaker
-from sqlmodel import SQLModel
-from sqlalchemy.ext.asyncio import async_scoped_session
-from asyncio import current_task
 from ..core.config import settings
+from src.models.base import Base
 
 
 class AsyncDatabase:
@@ -21,7 +19,7 @@ class AsyncDatabase:
     
     async def create_tables(self):
         async with self.engine.begin() as connection:
-            await connection.run_sync(SQLModel.metadata.create_all)
+            await connection.run_sync(Base.create_all)
 
 
 db = AsyncDatabase(

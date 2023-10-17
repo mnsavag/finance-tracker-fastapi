@@ -13,6 +13,6 @@ router = APIRouter()
 async def create_user(
     new_user: IUserCreate,
     user_service: UserService = Depends(UserService)
-):
+) -> dict:
     await user_service.add_user(new_user)
     return create_response(detail="User created")
