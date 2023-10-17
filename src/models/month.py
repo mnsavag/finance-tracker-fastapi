@@ -1,14 +1,16 @@
-from typing import Dict, List, Optional, TYPE_CHECKING
-from pydantic import validator
+from typing import Dict, Optional, TYPE_CHECKING
 from sqlalchemy import JSON, Column
 from sqlmodel import SQLModel, Field, Relationship
-import pytz
-import copy
-from datetime import datetime
-from calendar import monthrange
+from pydantic import validator
+
 from src.utils.time import get_date_by_time_zone
 from src.schemas.date_scheme import Date
 from src.schemas.days_schema import IDayExpenseCreate, IDayExpenseDelete
+
+import copy
+import pytz
+from calendar import monthrange
+
 
 if TYPE_CHECKING:
     from .user import User

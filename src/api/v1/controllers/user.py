@@ -1,13 +1,9 @@
-from typing import Annotated
-from fastapi import APIRouter, Depends, status, HTTPException
+from fastapi import APIRouter, Depends, status
 
-from src.schemas.user_shema import IUserCreate, IUserDataRead
+from src.schemas.user_shema import IUserCreate
 from src.schemas.response_shema import create_response
 
-from src.repository.user import UserRepository
 from src.services.user import UserService
-
-from src.deps.services import get_user_service
 
 
 router = APIRouter()
