@@ -41,11 +41,11 @@ async def create_month(
 
 
 @router.get("")
-async def get_month(monthRead: IMonthDefined): 
+async def get_month(definedMonth: IMonthDefined): 
     month: IMonth = await get_month_or_exception(
-        user_id=IMonthDefined.telegram_user_id, 
-        year=IMonthDefined.year, 
-        month=IMonthDefined.month
+        user_id=definedMonth.telegram_user_id, 
+        year=definedMonth.year, 
+        month=definedMonth.month
     )
     return month
 
