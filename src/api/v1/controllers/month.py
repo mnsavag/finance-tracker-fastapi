@@ -42,7 +42,7 @@ async def create_month(
 
 @router.get("")
 async def get_month(definedMonth: IMonthDefined): 
-    month: IMonth = await get_month_or_exception(
+    month = await get_month_or_exception(
         user_id=definedMonth.telegram_user_id, 
         year=definedMonth.year, 
         month=definedMonth.month
@@ -56,7 +56,7 @@ async def set_limits(
     month_service: MonthService = Depends(MonthService)
 ):
     
-    month: IMonth = await get_month_or_exception(
+    month = await get_month_or_exception(
         user_id=dayReadLimit.user_id, 
         year=dayReadLimit.year, 
         month=dayReadLimit.month,
@@ -64,7 +64,7 @@ async def set_limits(
     )
     
     try:
-        month: IMonth = await month_service.set_limits_after_day(month, dayReadLimit.day, dayReadLimit.limit)
+        month = await month_service.set_limits_after_day(month, dayReadLimit.day, dayReadLimit.limit)
     except Exception as e:
         raise UnprocessableEntityException(str(e))
     return month
@@ -76,7 +76,7 @@ async def set_limit(
     month_service: MonthService = Depends(MonthService)
 ):
     
-    month: IMonth = await get_month_or_exception(
+    month = await get_month_or_exception(
         user_id=dayReadLimit.user_id, 
         year=dayReadLimit.year, 
         month=dayReadLimit.month,
@@ -84,7 +84,7 @@ async def set_limit(
     )
     
     try:
-        month: IMonth = await month_service.set_day_limit(month, dayReadLimit.day, dayReadLimit.limit)
+        month = await month_service.set_day_limit(month, dayReadLimit.day, dayReadLimit.limit)
     except Exception as e:
         raise UnprocessableEntityException(str(e))
     return month
@@ -96,7 +96,7 @@ async def add_expense(
     month_service: MonthService = Depends(MonthService)
 ):
     
-    month: IMonth = await get_month_or_exception(
+    month = await get_month_or_exception(
         user_id=dayCreateExpense.user_id, 
         year=dayCreateExpense.year, 
         month=dayCreateExpense.month,
@@ -112,7 +112,7 @@ async def delete_expense(
     month_service: MonthService = Depends(MonthService)
 ):
     
-    month: IMonth = await get_month_or_exception(
+    month = await get_month_or_exception(
         user_id=dayDeleteExpense.user_id, 
         year=dayDeleteExpense.year, 
         month=dayDeleteExpense.month,
@@ -132,7 +132,7 @@ async def transer_to_savings(
     month_service: MonthService = Depends(MonthService)
 ):
     
-    month: IMonth = await get_month_or_exception(
+    month = await get_month_or_exception(
         user_id=dayTransferSavings.user_id, 
         year=dayTransferSavings.year, 
         month=dayTransferSavings.month,
@@ -152,7 +152,7 @@ async def transer_from_savings(
     month_service: MonthService = Depends(MonthService)
 ):
     
-    month: IMonth = await get_month_or_exception(
+    month = await get_month_or_exception(
         user_id=dayTransferSavings.user_id, 
         year=dayTransferSavings.year, 
         month=dayTransferSavings.month,
@@ -172,7 +172,7 @@ async def rest_to_savings(
     month_service: MonthService = Depends(MonthService)
 ):
     """Send all month's money rest before specified day to savings"""
-    month: IMonth = await get_month_or_exception(
+    month = await get_month_or_exception(
         user_id=dayRead.user_id, 
         year=dayRead.year, 
         month=dayRead.month,
@@ -192,7 +192,7 @@ async def rest_in_a_day(
     month_service: MonthService = Depends(MonthService)
 ):
     """Send all month's money rest before specified day in a day"""
-    month: IMonth = await get_month_or_exception(
+    month = await get_month_or_exception(
         user_id=dayRead.user_id, 
         year=dayRead.year, 
         month=dayRead.month,
