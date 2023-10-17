@@ -21,3 +21,10 @@ class IdNotFoundException(HTTPException):
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"{model.__name__} id not found."
         )
+
+class UnprocessableEntityException(HTTPException):
+    def __init__(self, detail) -> None:
+        super().__init__(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail=detail,
+            )

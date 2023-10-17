@@ -1,16 +1,24 @@
 from sqlmodel import SQLModel
-from src.schemas.date_scheme import DateFull, DateMonthYear
+from typing import Dict
+from src.schemas.date_scheme import DateFull
 
-class ISetLimit(DateFull):
+    
+class IDayRead(DateFull):
     user_id: int
+
+
+class IDaysLimitsUpdate(SQLModel):
+    days: Dict[str, float]
+
+class IDayReadLimit(IDayRead):
     limit: float
 
-
-class IExpenseCreate(DateFull):
-    user_id: int
+class IDayExpenseCreate(IDayRead):
     name: str
     cost: int
 
-class IExpenseDelete(DateFull):
-    user_id: int
+class IDayExpenseDelete(IDayRead):
     name: str
+
+class IDayTransferSavings(IDayRead):
+    amount: int

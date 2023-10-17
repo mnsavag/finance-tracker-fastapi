@@ -10,7 +10,7 @@ from src.utils.time import get_date_by_time_zone, Date
 
 from src.repository.month import MonthRepository
 from src.repository.user import UserRepository
-from src.schemas.days_schema import ISetLimit, IExpenseCreate, IExpenseDelete
+from src.schemas.days_schema import IDayReadLimit, IDayExpenseCreate, IDayExpenseDelete
 
 
 class MonthService:
@@ -20,7 +20,7 @@ class MonthService:
     async def get_by_id(self, id) -> Month:
         return await self.month_repo.get(id)
     
-    async def get_by_user_id_and_date(self, user_id: int, date: Date) -> Month | None:
+    async def get_month(self, user_id: int, date: Date) -> Month | None:
         return await self.month_repo.get_month(user_id, date.month, date.year)
     
     async def get_current_month(self, user_id: int, date: Date):
@@ -39,32 +39,20 @@ class MonthService:
         await month.set_limits_after_day(begin_day, limit)
         return await self.month_repo.update(month)
     
-    async def add_expense(self, month: Month, day: int, expense: IExpenseCreate) -> Month:
+    async def add_expense(self, month: Month, day: int, expense: IDayExpenseCreate) -> Month:
         await month.add_expense(day, expense)
         return await self.month_repo.update(month)
     
-    async def delete_expense(self, month: Month, day: int, expense: IExpenseDelete) -> Month:
+    async def delete_expense(self, month: Month, day: int, expense: IDayExpenseDelete) -> Month:
         await month.delete_expense(day, expense)
         return await self.month_repo.update(month)
     
     async def transfer_to_savings(self, month: Month, day: int, amount: float) -> Month:
-        try:
-            await month.transfer_to_savings(day, amount)
-        except Exception as e:
-            raise HTTPException(
-                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-                detail=str(e),
-            )
+        await month.transfer_to_savings(day, amount)
         return await self.month_repo.update(month)
     
     async def transfer_from_savings(self, month: Month, day: int, amount: float) -> Month:
-        try:
-            await month.transfer_from_savings(day, amount)
-        except Exception as e:
-            raise HTTPException(
-                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-                detail=str(e),
-            )
+        await month.transfer_from_savings(day, amount)
         return await self.month_repo.update(month)
 
     async def rest_to_savings(self, month: Month, until_day: int) -> Month:
@@ -76,13 +64,7 @@ class MonthService:
         return await self.month_repo.update(month)
 
     async def transfer_limits(self, month: Month, limits: dict[str, float]) -> None:
-        try:
-            await month.is_limits_consistent(limits)
-        except Exception as e:
-            raise HTTPException(
-                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-                detail=str(e),
-            )
+        await month.is_limits_consistent(limits)
         await self.month_repo.update(month)
 
     async def is_unique_month(self, month_in: MonthBase, user_telegram_id: int) -> bool:
