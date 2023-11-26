@@ -1,14 +1,29 @@
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
+from starlette.requests import Request
+from starlette.responses import Response
 
-from src.api.v1.api import api_router as api_router_vOne
+from user.presentation.router import user_router
+
+
+app = FastAPI()
+
+app.include_router(user_router)
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     yield
-    # Clean up the ML models and release the resources
 
-app = FastAPI(lifespan=lifespan)
-app.include_router(api_router_vOne)
+async def catch_exceptions_middleware(request: Request, call_next):
+    try:
+        return await call_next(request)
+    except Exception:
+        raise Response("Internal Server Error", status_code=500)
+
+
+app.middleware('http')(catch_exceptions_middleware)
+
+
+
 # uvicorn src.main:app --reload
