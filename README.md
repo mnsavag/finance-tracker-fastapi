@@ -1,6 +1,7 @@
 # finance-tracker-fastapi
 
 Backend for finance tracker application.
+
 At the moment the project is being rewritten to a different architecture
 
 ## Main stack
